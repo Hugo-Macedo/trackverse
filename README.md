@@ -1,40 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# trackverse
 
-## Getting Started
+Application Next.js pour connecter artistes, ingenieurs son et beatmakers autour de prods, playlists, textes et sessions d'enregistrement.
 
-First, run the development server:
+## MVP actuel
+
+- Catalogue de prods recupere depuis l'API YouTube Data.
+- Recherche de prods par mot-cle et theme via `/api/youtube/search`.
+- Selection d'une prod et lecture via embed YouTube.
+- Likes et ajout en playlist en local state.
+- Bloc d'ecriture artiste avec compteur de mots.
+- Mode Artiste / Inge son.
+- Panneau de session avec etat REC.
+- Interface mobile-first avec navigation basse.
+- Base PWA avec manifest, icone et service worker.
+- Direction artistique noire/violette sans background graffiti lourd.
+
+## Integration YouTube
+
+L'application utilise YouTube Data API v3 cote serveur pour chercher des videos de type beat/instrumental. Ajoute une cle API dans `.env.local` :
+
+```bash
+YOUTUBE_API_KEY=xxx
+```
+
+Endpoint principal :
+
+- `GET /api/youtube/search?q=drill&theme=Trap%20sombre&limit=18`
+
+Les resultats YouTube sont normalises en format Trackverse pour le front. Attention : l'API ne garantit pas qu'une video est une prod libre de droits. On force une recherche orientee `type beat instrumental prod`, puis on affiche le lecteur YouTube officiel et le lien vers la video source.
+
+## Integration SoundCloud optionnelle
+
+Les endpoints SoundCloud restent disponibles si tu recuperes un jour des credentials :
+
+- `GET /api/soundcloud/search?q=drill&theme=Trap%20sombre&limit=24`
+- `GET /api/soundcloud/tracks/:id/stream`
+
+## Lancer le projet
+
+```bash
+npm install
+npm run dev
+```
+
+Puis ouvrir [http://localhost:3000](http://localhost:3000).
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Workflow MR
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Les pull requests vers `main` ou `develop` lancent la CI GitHub Actions :
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+- `npm ci`
+- `npm run lint`
+- `npm run build`
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+Sur Vercel, configure `main` comme branche de production pour declencher un deploy prod a chaque merge vers `main`.
