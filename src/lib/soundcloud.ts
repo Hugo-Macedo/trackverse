@@ -1,3 +1,5 @@
+import type { TrackverseBeat } from "@/lib/beats";
+
 const API_BASE_URL = "https://api.soundcloud.com";
 const TOKEN_URL = "https://secure.soundcloud.com/oauth/token";
 const TOKEN_REFRESH_MARGIN_MS = 60_000;
@@ -50,25 +52,6 @@ type SoundCloudStreamPayload = {
     };
   }>;
   [key: string]: unknown;
-};
-
-export type TrackverseBeat = {
-  id: string;
-  title: string;
-  producer: string;
-  mood: string;
-  bpm: number | null;
-  key: string;
-  tags: string[];
-  plays: string;
-  price: string;
-  source: "SoundCloud";
-  color: string;
-  audioUrl: string;
-  permalinkUrl: string;
-  artworkUrl: string | null;
-  durationMs: number;
-  access: string;
 };
 
 export type SearchSoundCloudTracksParams = {
@@ -355,6 +338,7 @@ function mapSoundCloudTrack(track: SoundCloudTrack): TrackverseBeat {
     artworkUrl,
     durationMs: track.duration ?? 0,
     access: track.access ?? (track.streamable ? "playable" : "unknown"),
+    mediaType: "audio",
   };
 }
 

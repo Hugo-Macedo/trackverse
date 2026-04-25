@@ -391,6 +391,14 @@
   filter: invert(1) hue-rotate(232deg);
 }
 
+.youtubePlayer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(216, 194, 255, 0.18);
+  border-radius: 8px;
+  background: #05040a;
+}
+
 .sourceLink {
   display: inline-flex;
   width: fit-content;

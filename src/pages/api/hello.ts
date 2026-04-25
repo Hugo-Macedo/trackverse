@@ -13,7 +13,7 @@ export default function handler(
 ) {
   res.status(200).json({
     name: "trackverse",
-    status: "MVP mobile-first PWA avec endpoints SoundCloud",
+    status: "MVP mobile-first PWA avec endpoints YouTube",
     nextIntegrations: ["auth roles", "playlists persistantes", "sessions audio"],
   });
 }

@@ -4,9 +4,9 @@ Application Next.js pour connecter artistes, ingenieurs son et beatmakers autour
 
 ## MVP actuel
 
-- Catalogue de prods recupere depuis l'API SoundCloud.
-- Recherche de sons par mot-cle et theme via `/api/soundcloud/search`.
-- Selection d'une prod et lecteur audio via `/api/soundcloud/tracks/:id/stream`.
+- Catalogue de prods recupere depuis l'API YouTube Data.
+- Recherche de prods par mot-cle et theme via `/api/youtube/search`.
+- Selection d'une prod et lecture via embed YouTube.
 - Likes et ajout en playlist en local state.
 - Bloc d'ecriture artiste avec compteur de mots.
 - Mode Artiste / Inge son.
@@ -15,27 +15,26 @@ Application Next.js pour connecter artistes, ingenieurs son et beatmakers autour
 - Base PWA avec manifest, icone et service worker.
 - Direction artistique noire/violette sans background graffiti lourd.
 
-## Integration SoundCloud
+## Integration YouTube
 
-L'application utilise le flow SoundCloud Client Credentials cote serveur. Ajoute les credentials dans `.env.local` :
-
-```bash
-SOUNDCLOUD_CLIENT_ID=xxx
-SOUNDCLOUD_CLIENT_SECRET=xxx
-```
-
-Optionnellement, tu peux fournir un token deja genere :
+L'application utilise YouTube Data API v3 cote serveur pour chercher des videos de type beat/instrumental. Ajoute une cle API dans `.env.local` :
 
 ```bash
-SOUNDCLOUD_ACCESS_TOKEN=xxx
+YOUTUBE_API_KEY=xxx
 ```
 
-Endpoints disponibles :
+Endpoint principal :
+
+- `GET /api/youtube/search?q=drill&theme=Trap%20sombre&limit=18`
+
+Les resultats YouTube sont normalises en format Trackverse pour le front. Attention : l'API ne garantit pas qu'une video est une prod libre de droits. On force une recherche orientee `type beat instrumental prod`, puis on affiche le lecteur YouTube officiel et le lien vers la video source.
+
+## Integration SoundCloud optionnelle
+
+Les endpoints SoundCloud restent disponibles si tu recuperes un jour des credentials :
 
 - `GET /api/soundcloud/search?q=drill&theme=Trap%20sombre&limit=24`
 - `GET /api/soundcloud/tracks/:id/stream`
-
-Les resultats SoundCloud sont normalises en format Trackverse pour le front. Attention : "gratuit" ici veut dire streamable depuis SoundCloud, pas automatiquement libre de droits pour une exploitation commerciale.
 
 ## Lancer le projet
 
@@ -57,4 +56,10 @@ npm run lint
 
 ## Workflow MR
 
-Je peux preparer les branches, relire les diffs, lancer lint/build, corriger les retours et te donner le contenu pret a mettre en merge request. Le merge effectif dependra de l'acces Git distant et des droits CI disponibles dans ton environnement.
+Les pull requests vers `main` ou `develop` lancent la CI GitHub Actions :
+
+- `npm ci`
+- `npm run lint`
+- `npm run build`
+
+Sur Vercel, configure `main` comme branche de production pour declencher un deploy prod a chaque merge vers `main`.

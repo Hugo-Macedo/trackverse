@@ -1,4 +1,4 @@
-const CACHE_NAME = "trackverse-v1";
+const CACHE_NAME = "trackverse-v2";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",

@@ -1,7 +1,13 @@
 import Head from "next/head";
 import localFont from "next/font/local";
-import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
-import type { TrackverseBeat } from "@/lib/soundcloud";
+import {
+  ChangeEvent,
+  CSSProperties,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
+import type { TrackverseBeat } from "@/lib/beats";
 import styles from "@/styles/Home.module.css";
 
 const geistSans = localFont({
@@ -21,6 +27,19 @@ type SearchResponse = {
   error?: string;
 };
 
+type SearchState = {
+  beats: TrackverseBeat[];
+  selectedBeatId: string | null;
+  isLoading: boolean;
+  searchError: string | null;
+};
+
+type SearchAction =
+  | { type: "start" }
+  | { type: "success"; tracks: TrackverseBeat[] }
+  | { type: "error"; message: string }
+  | { type: "select"; id: string };
+
 const themes = [
   "Tous",
   "Trap sombre",
@@ -34,14 +53,17 @@ const themes = [
 
 export default function Home() {
   const [activeTheme, setActiveTheme] = useState("Tous");
-  const [selectedBeatId, setSelectedBeatId] = useState<string | null>(null);
+  const [{ beats, selectedBeatId, isLoading, searchError }, dispatchSearch] =
+    useReducer(searchReducer, {
+      beats: [],
+      selectedBeatId: null,
+      isLoading: true,
+      searchError: null,
+    });
   const [likedBeatIds, setLikedBeatIds] = useState<string[]>([]);
   const [playlistBeatIds, setPlaylistBeatIds] = useState<string[]>([]);
-  const [beats, setBeats] = useState<TrackverseBeat[]>([]);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchError, setSearchError] = useState<string | null>(null);
   const [lyrics, setLyrics] = useState(
     "J'arrive dans le booth, lumiere violette sur la vitre...\n",
   );
@@ -70,42 +92,29 @@ export default function Home() {
       params.set("q", debouncedQuery);
     }
 
-    setIsLoading(true);
-    setSearchError(null);
+    dispatchSearch({ type: "start" });
 
-    fetch(`/api/soundcloud/search?${params.toString()}`, {
+    fetch(`/api/youtube/search?${params.toString()}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
         const payload = (await response.json()) as SearchResponse;
 
         if (!response.ok) {
-          throw new Error(payload.error ?? "Recherche SoundCloud impossible.");
+          throw new Error(payload.error ?? "Recherche YouTube impossible.");
         }
 
         return payload.tracks ?? [];
       })
       .then((tracks) => {
-        setBeats(tracks);
-        setSelectedBeatId((currentId) =>
-          tracks.some((track) => track.id === currentId)
-            ? currentId
-            : tracks[0]?.id ?? null,
-        );
+        dispatchSearch({ type: "success", tracks });
       })
       .catch((error: Error) => {
         if (controller.signal.aborted) {
           return;
         }
 
-        setBeats([]);
-        setSelectedBeatId(null);
-        setSearchError(error.message);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        dispatchSearch({ type: "error", message: error.message });
       });
 
     return () => controller.abort();
@@ -160,7 +169,7 @@ export default function Home() {
         <main className={styles.shell}>
           <section className={styles.searchPanel} id="discover">
             <div>
-              <p className={styles.kicker}>soundcloud live search</p>
+              <p className={styles.kicker}>youtube beat search</p>
               <h1>Trouve ta prod</h1>
             </div>
             <label className={styles.searchBox} htmlFor="beat-search">
@@ -205,7 +214,7 @@ export default function Home() {
                 >
                   <button
                     className={styles.beatMain}
-                    onClick={() => setSelectedBeatId(beat.id)}
+                    onClick={() => dispatchSearch({ type: "select", id: beat.id })}
                     type="button"
                   >
                     <span
@@ -261,10 +270,10 @@ export default function Home() {
 
               {!isLoading && beats.length === 0 && (
                 <div className={styles.emptyState}>
-                  <p>{searchError ?? "Aucun son trouve sur SoundCloud"}</p>
+                  <p>{searchError ?? "Aucune prod trouvee sur YouTube"}</p>
                   {searchError && (
                     <small>
-                      Verifie tes variables SoundCloud dans `.env.local`, puis
+                      Verifie ta cle YouTube dans `.env.local`, puis
                       relance `npm run dev`.
                     </small>
                   )}
@@ -297,21 +306,32 @@ export default function Home() {
                       </span>
                     </div>
                   </div>
-                  <audio
-                    className={styles.audio}
-                    controls
-                    key={selectedBeat.id}
-                    preload="none"
-                  >
-                    <source src={selectedBeat.audioUrl} />
-                  </audio>
+                  {selectedBeat.mediaType === "youtube" && selectedBeat.embedUrl ? (
+                    <iframe
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className={styles.youtubePlayer}
+                      key={selectedBeat.id}
+                      src={selectedBeat.embedUrl}
+                      title={selectedBeat.title}
+                    />
+                  ) : (
+                    <audio
+                      className={styles.audio}
+                      controls
+                      key={selectedBeat.id}
+                      preload="none"
+                    >
+                      <source src={selectedBeat.audioUrl} />
+                    </audio>
+                  )}
                   <a
                     className={styles.sourceLink}
                     href={selectedBeat.permalinkUrl}
                     rel="noreferrer"
                     target="_blank"
                   >
-                    Ecouter et crediter sur SoundCloud
+                    Voir la prod sur {selectedBeat.source}
                   </a>
                   <div className={styles.tags}>
                     {selectedBeat.tags.map((tag) => (
@@ -363,4 +383,40 @@ export default function Home() {
       </div>
     </>
   );
+}
+
+function searchReducer(state: SearchState, action: SearchAction): SearchState {
+  switch (action.type) {
+    case "start":
+      return {
+        ...state,
+        isLoading: true,
+        searchError: null,
+      };
+    case "success":
+      return {
+        beats: action.tracks,
+        selectedBeatId: action.tracks.some(
+          (track) => track.id === state.selectedBeatId,
+        )
+          ? state.selectedBeatId
+          : action.tracks[0]?.id ?? null,
+        isLoading: false,
+        searchError: null,
+      };
+    case "error":
+      return {
+        beats: [],
+        selectedBeatId: null,
+        isLoading: false,
+        searchError: action.message,
+      };
+    case "select":
+      return {
+        ...state,
+        selectedBeatId: action.id,
+      };
+    default:
+      return state;
+  }
 }
