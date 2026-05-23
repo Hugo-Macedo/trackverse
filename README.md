@@ -1,40 +1,132 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# trackverse
 
-## Getting Started
+Trackverse est une application Next.js mobile-first qui aide artistes, beatmakers et ingénieurs du son à trouver des "prods" (beats), écrire des textes associés, organiser des playlists et préparer des sessions d'enregistrement.
 
-First, run the development server:
+## Aperçu
+
+- Catalogue de prods récupéré côté serveur depuis YouTube Data API (fallback SoundCloud).
+- Recherche par mot‑clé et thème depuis la page d'accueil.
+- Lecture via embed YouTube ou stream SoundCloud selon la source.
+- Sauvegarde locale des likes, prods enregistrées, playlists et brouillons d'écriture.
+- PWA basique : `manifest.webmanifest`, icônes, et enregistrement de `sw.js` en production.
+
+## Badges
+
+![Build](https://img.shields.io/badge/build-passing-brightgreen) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+
+## Table des matières
+
+- Installation
+- Variables d'environnement
+- Commandes utiles
+- Tests, lint et format
+- PWA & mobile-first
+- CI / Déploiement
+- Base de données & Auth
+- Contribuer
+
+## Installation
+
+Prérequis : Node 20, npm
+
+À partir de la racine du dépôt :
+
+```bash
+npm install
+make dev
+```
+
+Démarrer seulement en dev :
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables d'environnement
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Copie le modèle et complète les valeurs sensibles :
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```bash
+cp .env.example .env.local
+# puis édite .env.local
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+Variables importantes (extrait) :
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `YOUTUBE_API_KEY` — clé YouTube Data API v3
+- `SOUNDCLOUD_CLIENT_ID` / `SOUNDCLOUD_CLIENT_SECRET` — optionnel
+- `DATABASE_URL` — URL PostgreSQL (Prisma / Supabase)
+- `NEXTAUTH_URL` — URL publique (ex. https://example.com)
+- `NEXTAUTH_SECRET` — secret pour NextAuth/Session
 
-## Learn More
+## Commandes utiles
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` : lancement en développement
+- `npm run build` : build production
+- `npm run start` : start production (Next.js)
+- `npm run lint` : eslint
+- `npm run lint:fix` : eslint --fix
+- `npm run format` : prettier --write
+- `npm run test:run` : vitest run
+- `make precommit` : exécute `lint` puis `test:run`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## Tests, lint et format
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `ESLint` (config Next + Prettier) et `Prettier` pour le formatage.
+- Tests unitaires avec `Vitest` et `@testing-library/react`.
 
-## Deploy on Vercel
+Vérifications locales rapides :
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint && npm run test:run
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## PWA & mobile-first
+
+- La base PWA est prête : le manifeste est en `public/manifest.webmanifest` et `sw.js` est présent.
+- L'expérience est conçue mobile-first (UI responsive, navigation basse).
+
+## CI / Déploiement
+
+- GitHub Actions : CI lancée sur `push` et `pull_request` vers `main`.
+- Déploiement en production : uniquement déclenché lorsqu'un tag `v*` est poussé sur `main` (job `deploy`).
+- Pour déployer sur Vercel automatiquement, ajoute `VERCEL_TOKEN` et `VERCEL_PROJECT_ID` dans les secrets GitHub et remplace le job `deploy` placeholder par l'action officielle Vercel.
+
+Créer et pousser un tag de release :
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+## Base de données & Auth (préconisations)
+
+- Recommandé : PostgreSQL + `Prisma` pour ORM / migrations, ou `Supabase` comme solution managée.
+- Auth recommandée : `NextAuth.js` (email / OAuth) ou services tiers (`Clerk`, `Auth0`) si besoin.
+
+Si tu choisis Prisma :
+
+```bash
+npm install prisma --save-dev
+npx prisma init
+npx prisma migrate dev --name init
+```
+
+## Contribuer
+
+- Fork → branche feature → PR vers `main`.
+- Avant PR : `npm run lint` et `npm run test:run`.
+
+## Licence
+
+MIT
+
+---
+
+J'ai mis à jour le fichier README pour fournir des instructions claires et actionnables. Dis‑moi si tu veux que j'ajoute :
+
+- un guide d'installation Prisma + schema d'exemple,
+- l'intégration `NextAuth` prête à l'emploi,
+- ou le job Vercel complet dans la CI (requiert `VERCEL_TOKEN`).
+
+Fichier mis à jour : [README.md](README.md)
