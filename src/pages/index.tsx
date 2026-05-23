@@ -605,7 +605,7 @@ export default function Home() {
                   <div className={styles.miniBeat}>
                     <span>Drill</span>
                     <strong>Piano sombre type beat</strong>
-                    <small>YouTube search</small>
+                    <small>Espace prive</small>
                   </div>
                   <div className={styles.miniLine} />
                   <div className={styles.miniLine} />
