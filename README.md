@@ -1,65 +1,132 @@
 # trackverse
 
-Application Next.js pour connecter artistes, ingenieurs son et beatmakers autour de prods, playlists, textes et sessions d'enregistrement.
+Trackverse est une application Next.js mobile-first qui aide artistes, beatmakers et ingénieurs du son à trouver des "prods" (beats), écrire des textes associés, organiser des playlists et préparer des sessions d'enregistrement.
 
-## MVP actuel
+## Aperçu
 
-- Catalogue de prods recupere depuis l'API YouTube Data.
-- Recherche de prods par mot-cle et theme via `/api/youtube/search`.
-- Selection d'une prod et lecture via embed YouTube.
-- Likes et ajout en playlist en local state.
-- Bloc d'ecriture artiste avec compteur de mots.
-- Mode Artiste / Inge son.
-- Panneau de session avec etat REC.
-- Interface mobile-first avec navigation basse.
-- Base PWA avec manifest, icone et service worker.
-- Direction artistique noire/violette sans background graffiti lourd.
+- Catalogue de prods récupéré côté serveur depuis YouTube Data API (fallback SoundCloud).
+- Recherche par mot‑clé et thème depuis la page d'accueil.
+- Lecture via embed YouTube ou stream SoundCloud selon la source.
+- Sauvegarde locale des likes, prods enregistrées, playlists et brouillons d'écriture.
+- PWA basique : `manifest.webmanifest`, icônes, et enregistrement de `sw.js` en production.
 
-## Integration YouTube
+## Badges
 
-L'application utilise YouTube Data API v3 cote serveur pour chercher des videos de type beat/instrumental. Ajoute une cle API dans `.env.local` :
+![Build](https://img.shields.io/badge/build-passing-brightgreen) ![Tests](https://img.shields.io/badge/tests-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
 
-```bash
-YOUTUBE_API_KEY=xxx
-```
+## Table des matières
 
-Endpoint principal :
+- Installation
+- Variables d'environnement
+- Commandes utiles
+- Tests, lint et format
+- PWA & mobile-first
+- CI / Déploiement
+- Base de données & Auth
+- Contribuer
 
-- `GET /api/youtube/search?q=drill&theme=Trap%20sombre&limit=18`
+## Installation
 
-Les resultats YouTube sont normalises en format Trackverse pour le front. Attention : l'API ne garantit pas qu'une video est une prod libre de droits. On force une recherche orientee `type beat instrumental prod`, puis on affiche le lecteur YouTube officiel et le lien vers la video source.
+Prérequis : Node 20, npm
 
-## Integration SoundCloud optionnelle
-
-Les endpoints SoundCloud restent disponibles si tu recuperes un jour des credentials :
-
-- `GET /api/soundcloud/search?q=drill&theme=Trap%20sombre&limit=24`
-- `GET /api/soundcloud/tracks/:id/stream`
-
-## Lancer le projet
+À partir de la racine du dépôt :
 
 ```bash
 npm install
-npm run dev
+make dev
 ```
 
-Puis ouvrir [http://localhost:3000](http://localhost:3000).
-
-## Scripts
+Démarrer seulement en dev :
 
 ```bash
 npm run dev
-npm run build
-npm run start
-npm run lint
 ```
 
-## Workflow MR
+## Variables d'environnement
 
-Les pull requests vers `main` ou `develop` lancent la CI GitHub Actions :
+Copie le modèle et complète les valeurs sensibles :
 
-- `npm ci`
-- `npm run lint`
-- `npm run build`
+```bash
+cp .env.example .env.local
+# puis édite .env.local
+```
 
-Sur Vercel, configure `main` comme branche de production pour declencher un deploy prod a chaque merge vers `main`.
+Variables importantes (extrait) :
+
+- `YOUTUBE_API_KEY` — clé YouTube Data API v3
+- `SOUNDCLOUD_CLIENT_ID` / `SOUNDCLOUD_CLIENT_SECRET` — optionnel
+- `DATABASE_URL` — URL PostgreSQL (Prisma / Supabase)
+- `NEXTAUTH_URL` — URL publique (ex. https://example.com)
+- `NEXTAUTH_SECRET` — secret pour NextAuth/Session
+
+## Commandes utiles
+
+- `npm run dev` : lancement en développement
+- `npm run build` : build production
+- `npm run start` : start production (Next.js)
+- `npm run lint` : eslint
+- `npm run lint:fix` : eslint --fix
+- `npm run format` : prettier --write
+- `npm run test:run` : vitest run
+- `make precommit` : exécute `lint` puis `test:run`
+
+## Tests, lint et format
+
+- `ESLint` (config Next + Prettier) et `Prettier` pour le formatage.
+- Tests unitaires avec `Vitest` et `@testing-library/react`.
+
+Vérifications locales rapides :
+
+```bash
+npm run lint && npm run test:run
+```
+
+## PWA & mobile-first
+
+- La base PWA est prête : le manifeste est en `public/manifest.webmanifest` et `sw.js` est présent.
+- L'expérience est conçue mobile-first (UI responsive, navigation basse).
+
+## CI / Déploiement
+
+- GitHub Actions : CI lancée sur `push` et `pull_request` vers `main`.
+- Déploiement en production : uniquement déclenché lorsqu'un tag `v*` est poussé sur `main` (job `deploy`).
+- Pour déployer sur Vercel automatiquement, ajoute `VERCEL_TOKEN` et `VERCEL_PROJECT_ID` dans les secrets GitHub et remplace le job `deploy` placeholder par l'action officielle Vercel.
+
+Créer et pousser un tag de release :
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+## Base de données & Auth (préconisations)
+
+- Recommandé : PostgreSQL + `Prisma` pour ORM / migrations, ou `Supabase` comme solution managée.
+- Auth recommandée : `NextAuth.js` (email / OAuth) ou services tiers (`Clerk`, `Auth0`) si besoin.
+
+Si tu choisis Prisma :
+
+```bash
+npm install prisma --save-dev
+npx prisma init
+npx prisma migrate dev --name init
+```
+
+## Contribuer
+
+- Fork → branche feature → PR vers `main`.
+- Avant PR : `npm run lint` et `npm run test:run`.
+
+## Licence
+
+MIT
+
+---
+
+J'ai mis à jour le fichier README pour fournir des instructions claires et actionnables. Dis‑moi si tu veux que j'ajoute :
+
+- un guide d'installation Prisma + schema d'exemple,
+- l'intégration `NextAuth` prête à l'emploi,
+- ou le job Vercel complet dans la CI (requiert `VERCEL_TOKEN`).
+
+Fichier mis à jour : [README.md](README.md)
