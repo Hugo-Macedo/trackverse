@@ -90,7 +90,8 @@ npm run lint && npm run test:run
 
 - GitHub Actions : CI lancée sur `push` et `pull_request` vers `main`.
 - Déploiement en production : uniquement déclenché lorsqu'un tag `v*` est poussé sur `main` (job `deploy`).
-- Pour déployer sur Vercel automatiquement, ajoute `VERCEL_TOKEN` et `VERCEL_PROJECT_ID` dans les secrets GitHub et remplace le job `deploy` placeholder par l'action officielle Vercel.
+- `VERCEL_TOKEN` doit être ajouté en secret GitHub Actions, pas dans `.env.local`.
+- Pour déployer sur Vercel automatiquement, ajoute `VERCEL_TOKEN`, `VERCEL_ORG_ID` et `VERCEL_PROJECT_ID` dans les secrets GitHub.
 
 Créer et pousser un tag de release :
 
